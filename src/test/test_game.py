@@ -60,3 +60,6 @@ def test_insert_3_times_in_same_col(game):
                          ["R", "", "", "", "", "", ""],
                          ["Y", "", "", "", "", "", ""],
                          ["R", "", "", "", "", "", ""]]
+
+# Tester ce qu'il se passe lorsqu'on essaye d'inserer une piece dans une colonne pleine
+# Tester la fin de partie
