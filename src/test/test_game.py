@@ -61,5 +61,11 @@ def test_insert_3_times_in_same_col(game):
                          ["Y", "", "", "", "", "", ""],
                          ["R", "", "", "", "", "", ""]]
 
-# Tester ce qu'il se passe lorsqu'on essaye d'inserer une piece dans une colonne pleine
+
+def test_insert_coin_in_full_column(game):
+    for _ in range(6):
+        game.insert_coin(0)
+    with pytest.raises(Game.ColumnIsFullError):
+        game.insert_coin(0)
+
 # Tester la fin de partie

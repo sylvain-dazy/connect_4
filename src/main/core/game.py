@@ -6,8 +6,10 @@ class Game:
 
     def insert_coin(self, col: int):
         row = len(self.grid) - 1
-        while self.is_not_free(row, col):
+        while row >= 0 and self.is_not_free(row, col):
             row -= 1
+        if self.is_not_free(row, col):
+            raise Game.ColumnIsFullError
         self.grid[row][col] = self.get_current_color()
         self.next_player()
 
@@ -19,3 +21,6 @@ class Game:
 
     def get_current_color(self) -> str:
         return self.color[self.current_player]
+
+    class ColumnIsFullError(Exception):
+        pass

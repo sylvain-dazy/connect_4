@@ -1,3 +1,5 @@
+import logging
+
 import pygame
 
 from src.main.core.game import Game
@@ -37,7 +39,10 @@ class GameView:
                     pos = event.pos[0]
                     self.chosen_column = (pos - self.BOARD_MARGIN_LEFT) // self.cell_size
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    self.game.insert_coin(self.chosen_column)
+                    try:
+                        self.game.insert_coin(self.chosen_column)
+                    except Game.ColumnIsFullError:
+                        logging.getLogger(GameView.__name__).error("Error: Column is full")
             self.draw_game()
             self.clock.tick(self.FPS)
         pygame.quit()
