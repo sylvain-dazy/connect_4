@@ -44,7 +44,18 @@ class GameView:
                     except Game.ColumnIsFullError:
                         logging.getLogger(GameView.__name__).error("Error: Column is full")
             self.draw_game()
-            self.clock.tick(self.FPS)
+            if self.game.is_over:
+                logging.getLogger(GameView.__name__).info("Game over")
+                if self.game.winner is not None:
+                    logging.getLogger(GameView.__name__).info("Winner is " + self.game.winner + " player")
+                else:
+                    logging.getLogger(GameView.__name__).info("It's a draw")
+                while running:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            running = False
+                    self.clock.tick(self.FPS)
+        self.clock.tick(self.FPS)
         pygame.quit()
 
     def draw_game(self):
@@ -66,7 +77,8 @@ class GameView:
     def draw_board(self, margin_left: int, margin_top: int):
         dist_between_2_center = 2 * (self.CELL_RADIUS + self.CELL_MARGIN)
         first_center = (self.CELL_RADIUS + self.CELL_MARGIN + margin_left, 3 * (self.CELL_RADIUS + self.CELL_MARGIN))
-        pygame.draw.rect(self.screen, self.color["blue"], (margin_left, margin_top, self.cell_size * self.COLS, self.cell_size * self.ROWS))
+        board_rect = (margin_left, margin_top, self.cell_size * self.COLS, self.cell_size * self.ROWS)
+        pygame.draw.rect(self.screen, self.color["blue"], board_rect)
         for row in range(6):
             for col in range(7):
                 if self.game.grid[row][col] == "R":
