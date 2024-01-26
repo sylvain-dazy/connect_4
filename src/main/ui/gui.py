@@ -74,6 +74,6 @@ class GameView:
                 elif self.game.grid[row][col] == "Y":
                     color = self.color["yellow"]
                 else:
-                    color = self.color["white"]
+                    color = self.background_color
                 center = (col * dist_between_2_center + first_center[0], row * dist_between_2_center + first_center[1])
                 pygame.draw.circle(self.screen, color, center, self.CELL_RADIUS)
