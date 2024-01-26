@@ -68,4 +68,4 @@ def test_insert_coin_in_full_column(game):
     with pytest.raises(Game.ColumnIsFullError):
         game.insert_coin(0)
 
-# Tester la fin de partie
+# Tester la fin de partie -> Tester s'il y a un gagnant ou si c'est un match null
