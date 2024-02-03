@@ -36,27 +36,35 @@ class GameView:
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.MOUSEMOTION:
-                    pos = event.pos[0]
-                    self.chosen_column = (pos - self.BOARD_MARGIN_LEFT) // self.cell_size
+                    self.chosen_column = (event.pos[0] - self.BOARD_MARGIN_LEFT) // self.cell_size
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     try:
+                        free_position = self.game.get_free_position(self.chosen_column)
                         self.game.insert_coin(self.chosen_column)
                     except Game.ColumnIsFullError:
                         logging.getLogger(GameView.__name__).error("Error: Column is full")
             self.draw_game()
             if self.game.is_over:
-                logging.getLogger(GameView.__name__).info("Game over")
-                if self.game.winner is not None:
-                    logging.getLogger(GameView.__name__).info("Winner is " + self.game.winner + " player")
-                else:
-                    logging.getLogger(GameView.__name__).info("It's a draw")
-                while running:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            running = False
-                    self.clock.tick(self.FPS)
+                self.display_winner()
+                self.pause_the_game()
+                running = False
         self.clock.tick(self.FPS)
         pygame.quit()
+
+    def display_winner(self):
+        logging.getLogger(GameView.__name__).info("Game over")
+        if self.game.winner is not None:
+            logging.getLogger(GameView.__name__).info("Winner is " + self.game.winner + " player")
+        else:
+            logging.getLogger(GameView.__name__).info("It's a draw")
+
+    def pause_the_game(self):
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+            self.clock.tick(self.FPS)
 
     def draw_game(self):
         self.screen.fill(self.background_color)
@@ -72,6 +80,9 @@ class GameView:
             color = self.color["red"]
         else:
             color = self.color["yellow"]
+        self.draw_coin(center, color)
+
+    def draw_coin(self, center: tuple[int, int], color: tuple[int, int, int]):
         pygame.draw.circle(self.screen, color, center, self.CELL_RADIUS)
 
     def draw_board(self, margin_left: int, margin_top: int):

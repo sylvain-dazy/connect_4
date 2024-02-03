@@ -8,10 +8,8 @@ class Game:
         self.is_grid_full = False
 
     def insert_coin(self, col: int):
-        row = len(self.grid) - 1
-        while row >= 0 and self.is_not_free(row, col):
-            row -= 1
-        if self.is_not_free(row, col):
+        row = self.get_free_position(col)
+        if row is None:
             raise Game.ColumnIsFullError
         self.grid[row][col] = self.get_current_color()
         self.is_grid_full = self.is_full()
@@ -22,6 +20,14 @@ class Game:
                 self.winner = self.get_current_color()
         else:
             self.next_player()
+
+    def get_free_position(self, col: int) -> int | None:
+        row = len(self.grid) - 1
+        while row >= 0 and self.is_not_free(row, col):
+            row -= 1
+        if self.is_free(row, col):
+            return row
+        return None
 
     def is_not_free(self, row: int, col: int):
         return not self.is_free(row, col)
