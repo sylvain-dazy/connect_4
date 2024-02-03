@@ -1,5 +1,6 @@
 import logging
 
+from src.main.core.board import Board
 from src.main.core.game import Game
 
 
@@ -22,7 +23,7 @@ class Console:
                 else:
                     try:
                         self.game.insert_coin(column - 1)
-                    except Game.ColumnIsFullError:
+                    except Board.ColumnIsFullError:
                         print("Column " + str(column) + " is full")
                         logging.getLogger(Console.__name__).error("Column " + str(column) + " is full")
 
@@ -37,9 +38,9 @@ class Console:
         print(" 1 2 3 4 5 6 7 ")
         for row in range(6):
             for col in range(7):
-                if self.game.grid[row][col] == "R":
+                if self.game.board.grid[row][col] == "R":
                     symbol = "R"
-                elif self.game.grid[row][col] == "Y":
+                elif self.game.board.grid[row][col] == "Y":
                     symbol = "Y"
                 else:
                     symbol = " "
