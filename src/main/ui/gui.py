@@ -2,6 +2,7 @@ import logging
 
 import pygame
 
+from src.main.core.board import Board
 from src.main.core.game import Game
 
 
@@ -19,8 +20,8 @@ class GameView:
         self.game = game
         self.board_color = self.color["blue"]
         self.background_color = self.color["white"]
-        self.ROWS = len(self.game.grid)
-        self.COLS = len(self.game.grid[0])
+        self.ROWS = len(self.game.board.grid)
+        self.COLS = len(self.game.board.grid[0])
         self.cell_size = 2 * (self.CELL_RADIUS + self.CELL_MARGIN)
         window_width = self.COLS * self.cell_size + 2 * self.CELL_MARGIN
         window_height = (self.ROWS + 1) * self.cell_size + 2 * self.CELL_MARGIN
@@ -39,9 +40,8 @@ class GameView:
                     self.chosen_column = (event.pos[0] - self.BOARD_MARGIN_LEFT) // self.cell_size
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     try:
-                        free_position = self.game.get_free_position(self.chosen_column)
                         self.game.insert_coin(self.chosen_column)
-                    except Game.ColumnIsFullError:
+                    except Board.ColumnIsFullError:
                         logging.getLogger(GameView.__name__).error("Error: Column is full")
             self.draw_game()
             if self.game.is_over:
@@ -92,9 +92,9 @@ class GameView:
         pygame.draw.rect(self.screen, self.color["blue"], board_rect)
         for row in range(6):
             for col in range(7):
-                if self.game.grid[row][col] == "R":
+                if self.game.board.grid[row][col] == "R":
                     color = self.color["red"]
-                elif self.game.grid[row][col] == "Y":
+                elif self.game.board.grid[row][col] == "Y":
                     color = self.color["yellow"]
                 else:
                     color = self.background_color
