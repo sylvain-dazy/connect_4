@@ -1,6 +1,9 @@
 class Game:
+
+    FREE_SPACE = ""
+
     def __init__(self, rows: int = 6, cols: int = 7, colors: tuple[str, str] = ("R", "Y")):
-        self.grid = [["" for _ in range(cols)] for _ in range(rows)]
+        self.grid = [[Game.FREE_SPACE for _ in range(cols)] for _ in range(rows)]
         self.color = colors
         self.current_player = 0
         self.winner = None
@@ -33,7 +36,7 @@ class Game:
         return not self.is_free(row, col)
 
     def is_free(self, row: int, col: int):
-        return self.grid[row][col] == ""
+        return self.grid[row][col] == Game.FREE_SPACE
 
     def next_player(self):
         self.current_player = (self.current_player + 1) % len(self.color)
