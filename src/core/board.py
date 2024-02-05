@@ -1,29 +1,31 @@
-class Board:
+class Grid:
 
     FREE_SPACE = ""
 
     def __init__(self, rows: int = 6, cols: int = 7):
-        self.grid = [[Board.FREE_SPACE for _ in range(cols)] for _ in range(rows)]
+        self.rows = rows
+        self.cols = cols
+        self.state = [[Grid.FREE_SPACE for _ in range(self.cols)] for _ in range(self.rows)]
 
-    def insert_coin(self, color: str, col: int):
+    def insert_coin(self, coin: str, col: int):
         row = self.get_free_row(col)
         if row is None:
-            raise Board.ColumnIsFullError
-        self.grid[row][col] = color
+            raise Grid.ColumnIsFullError
+        self.state[row][col] = coin
 
     def get_free_row(self, col: int) -> int | None:
-        row = len(self.grid) - 1
+        row = len(self.state) - 1
         while row >= 0:
             if self.is_free(row, col):
                 return row
             row -= 1
         return None
 
-    def is_not_free(self, row: int, col: int) -> bool:
-        return not self.is_free(row, col)
+    def is_column_full(self, col: int) -> bool:
+        return not self.is_free(0, col)
 
     def is_free(self, row: int, col: int) -> bool:
-        return self.grid[row][col] == Board.FREE_SPACE
+        return self.state[row][col] == Grid.FREE_SPACE
 
     def is_full(self) -> bool:
         for row in range(6):
@@ -33,7 +35,7 @@ class Board:
         return True
 
     def get_coin_color(self, row: int, col: int) -> str:
-        return self.grid[row][col]
+        return self.state[row][col]
 
     class ColumnIsFullError(Exception):
         pass

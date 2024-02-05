@@ -1,9 +1,9 @@
-from src.main.core.board import Board
+from src.core.board import Grid
 
 
-class GameSolver:
+class WinChecker:
 
-    def __init__(self, board: Board):
+    def __init__(self, board: Grid):
         self.board = board
 
     def check_win(self, color: str, row: int, col: int) -> bool:
@@ -80,34 +80,3 @@ class GameSolver:
         if count == 4:
             return True
         return False
-
-
-class Game:
-
-    def __init__(self, rows: int = 6, cols: int = 7, colors: tuple[str, str] = ("R", "Y")):
-        self.board = Board(rows, cols)
-        self.solver = GameSolver(self.board)
-        self.color = colors
-        self.current_player = 0
-        self.winner = None
-        self.is_over = False
-        self.is_grid_full = False
-
-    def next_player(self):
-        self.current_player = (self.current_player + 1) % len(self.color)
-
-    def get_current_color(self) -> str:
-        return self.color[self.current_player]
-
-    def insert_coin(self, col: int):
-        color = self.get_current_color()
-        row = self.board.get_free_row(col)
-        self.board.insert_coin(color, col)
-        self.is_grid_full = self.board.is_full()
-        is_won = self.solver.check_win(color, row, col)
-        if is_won or self.is_grid_full:
-            self.is_over = True
-            if is_won:
-                self.winner = self.get_current_color()
-        else:
-            self.next_player()
