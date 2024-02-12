@@ -57,7 +57,7 @@ class View:
         coin = self.game.grid.state[row][col]
         if coin is self.game.grid.FREE:
             return self.EMPTY_CELL_SYMBOL
-        return self.SYMBOLS[coin]
+        return self.SYMBOLS[self.game.players[coin]]
 
     def display_winner(self):
-        print(WINNER[self.lang].format(self.game.winner))
+        print(WINNER[self.lang].format(self.game.get_winner()))

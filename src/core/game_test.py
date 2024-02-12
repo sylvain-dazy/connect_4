@@ -21,7 +21,7 @@ def test_when_last_player_played_should_be_first_player_turn():
 
 def test_no_winner():
     game = Game("Sylvain", "Julien")
-    assert game.winner == None
+    assert game.get_winner() is None
 
 
 def test_winner():
@@ -33,4 +33,4 @@ def test_winner():
     game.play(0)
     game.play(1)
     game.play(0)
-    assert game.winner == "Sylvain"
+    assert game.get_winner() == "Sylvain"
