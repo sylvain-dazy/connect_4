@@ -1,21 +1,4 @@
-from src.core.grid import Grid
-
-
-class Game:
-    def __init__(self, first: str, second: str):
-        self.players = [first, second]
-        self.current_player = 0
-        self.grid = Grid(6, 7)
-
-    def get_current_player(self):
-        return self.players[self.current_player]
-
-    def play(self, column: int):
-        self.grid.insert(self.current_player, column)
-        self.current_player = self.next_player()
-
-    def next_player(self):
-        return (self.current_player + 1) % len(self.players)
+from src.core.game import Game
 
 
 def test_first_player():
