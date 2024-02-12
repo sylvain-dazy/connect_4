@@ -1,6 +1,6 @@
 import pygame
 
-from src.core.board import Grid
+from src.core.grid import Grid
 from src.core.game import Game
 
 WHITE = (255, 255, 255)
