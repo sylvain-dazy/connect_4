@@ -6,7 +6,7 @@ from src.console.view import View
 from src.core.game import Game
 
 LOG_LEVEL = logging.INFO
-LANG = "en"
+LANG = "fr"
 
 if __name__ == '__main__':
     logging.basicConfig(level=LOG_LEVEL)

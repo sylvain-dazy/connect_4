@@ -1,12 +1,16 @@
 from src.core.game import Game
 
 
-QUIT_ACTION = {"en": "exit"}
-NEW_GAME_ACTION = {"en": "new"}
-TURN = {"en": "It's {}'s turn"}
-ERROR_PREFIX = {"en": "ERROR: "}
-MENU = {"en": "Enter the column number, {} to stat a new game or {} to exit the game"}
-WINNER = {"en": "{} wins the game"}
+QUIT_ACTION = {"en": "q",
+               "fr": "q"}
+NEW_GAME_ACTION = {"en": "n",
+                   "fr": "n"}
+TURN = {"en": "It's {}'s turn",
+        "fr": "C'est au tour de {}"}
+MENU = {"en": "Enter the column number, {} to stat a new game or {} to exit the game",
+        "fr": "Entrez le numéro de la colonne, {} pour commencer un nouveau jeu ou {} pour quitter le jeu"}
+WINNER = {"en": "{} wins the game",
+          "fr": "{} a gagné !"}
 
 
 class View:
@@ -17,15 +21,17 @@ class View:
         self.EMPTY_CELL_SYMBOL = " "
         self.CELL_SEPARATOR = "|"
         self.BOTTOM_SEPERATOR = "-"
-        self.SYMBOLS = {game.players[0]: "R", game.players[1]: "Y"}
+        self.SYMBOLS = {game.players[0]: "X", game.players[1]: "O"}
         self.new_game_action = NEW_GAME_ACTION[lang]
         self.quit_action = QUIT_ACTION[lang]
 
     def display_game(self):
         self.display_grid()
-        self.display_menu()
-        if self.game.winner is not None:
+        if self.game.get_winner() is not None:
             self.display_winner()
+        else:
+            self.display_turn()
+        self.display_menu()
 
     def display_grid(self):
         self.display_grid_header()
@@ -50,12 +56,11 @@ class View:
     def display_bottom_line(self):
         print(self.game.grid.cols * (self.CELL_SEPARATOR + self.BOTTOM_SEPERATOR) + self.CELL_SEPARATOR)
 
-    def display_menu(self):
+    def display_turn(self):
         print(TURN[self.lang].format(self.game.get_current_player()))
-        print(MENU[self.lang].format(NEW_GAME_ACTION[self.lang], QUIT_ACTION[self.lang]))
 
-    def display_error(self, message: str):
-        print(ERROR_PREFIX[self.lang] + message)
+    def display_menu(self):
+        print(MENU[self.lang].format(NEW_GAME_ACTION[self.lang], QUIT_ACTION[self.lang]))
 
     def get_symbol(self, row: int, col: int):
         coin = self.game.grid.state[row][col]
