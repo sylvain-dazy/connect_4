@@ -2,10 +2,15 @@ class Grid:
 
     FREE = None
 
-    def __init__(self, rows: int, columns: int):
-        self.rows = rows
-        self.cols = columns
-        self.state = [[Grid.FREE for _ in range(self.cols)] for _ in range(self.rows)]
+    def __init__(self, rows: int = 6, columns: int = 7, initial_state: list[list] = None):
+        if initial_state is None:
+            self.rows = rows
+            self.cols = columns
+            self.state = [[Grid.FREE for _ in range(self.cols)] for _ in range(self.rows)]
+        else:
+            self.rows = len(initial_state)
+            self.cols = len(initial_state[0])
+            self.state = initial_state
 
     def insert(self, coin: object, column: int):
         if not self.__is_valid(column):
