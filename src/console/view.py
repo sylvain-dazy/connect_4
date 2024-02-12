@@ -1,9 +1,11 @@
 from src.core.game import Game
 
 
+QUIT_ACTION = {"en": "exit"}
+NEW_GAME_ACTION = {"en": "new"}
 TURN = {"en": "It's {}'s turn"}
-ACTIONS = {"en": "Enter the column number or quit, exit or close"}
 ERROR_PREFIX = {"en": "ERROR: "}
+MENU = {"en": "Enter the column number, {} to stat a new game or {} to exit the game"}
 WINNER = {"en": "{} wins the game"}
 
 
@@ -16,6 +18,8 @@ class View:
         self.CELL_SEPARATOR = "|"
         self.BOTTOM_SEPERATOR = "-"
         self.SYMBOLS = {game.players[0]: "R", game.players[1]: "Y"}
+        self.new_game_action = NEW_GAME_ACTION[lang]
+        self.quit_action = QUIT_ACTION[lang]
 
     def display_game(self):
         self.display_grid()
@@ -48,7 +52,7 @@ class View:
 
     def display_menu(self):
         print(TURN[self.lang].format(self.game.get_current_player()))
-        print(ACTIONS[self.lang])
+        print(MENU[self.lang].format(NEW_GAME_ACTION[self.lang], QUIT_ACTION[self.lang]))
 
     def display_error(self, message: str):
         print(ERROR_PREFIX[self.lang] + message)

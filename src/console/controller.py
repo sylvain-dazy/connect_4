@@ -12,8 +12,10 @@ class Controller:
         while running:
             self.view.display_game()
             user_action = input("> ")
-            if user_action in {"quit", "exit", "end", "close"}:
+            if user_action == self.view.quit_action:
                 running = False
+            elif user_action == self.view.new_game_action:
+                self.game.reset()
             elif self.game.winner is None:
                 column = int(user_action)
                 self.game.play(column - 1)
