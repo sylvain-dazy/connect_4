@@ -14,7 +14,7 @@ BACKGROUND_COLOR = WHITE
 BOARD_COLOR = BLUE
 
 BOARD_MARGIN = 10
-CELL_MARGIN = 5
+CELL_MARGIN = 7
 CELL_RADIUS = 40
 CELL_SIZE = 2 * (CELL_RADIUS + CELL_MARGIN)
 INSERTION_AREA_HEIGHT = 100
@@ -88,4 +88,6 @@ class View:
 
     def get_chosen_column(self) -> int:
         x, y = pygame.mouse.get_pos()
-        return (x - BOARD_MARGIN) // INSERTION_AREA_HEIGHT
+        if x < BOARD_MARGIN:
+            return 0
+        return (x - BOARD_MARGIN) // CELL_SIZE
