@@ -1,5 +1,5 @@
-from src.core.board import Grid
-from src.core.winner_check import WinChecker
+from src.core.connect_four_checker import ConnectFourChecker
+from src.core.grid import Grid
 
 
 class Game:
@@ -8,7 +8,7 @@ class Game:
         self.current_player = 0
         self.players = players
         self.grid = Grid(rows, cols)
-        self.solver = WinChecker(self.grid)
+        self.solver = ConnectFourChecker(self.grid)
         self.winner = None
         self.is_over = False
         self.is_grid_full = False
@@ -22,7 +22,7 @@ class Game:
     def insert_coin(self, col: int):
         color = self.get_current_player()
         row = self.grid.get_free_row(col)
-        self.grid.insert_coin(color, col)
+        self.grid.insert(color, col)
         self.is_grid_full = self.grid.is_full()
         is_won = self.solver.check_win(color, row, col)
         if is_won or self.is_grid_full:
