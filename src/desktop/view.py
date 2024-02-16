@@ -10,7 +10,7 @@ RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
 
-BACKGROUND_COLOR = WHITE
+BACKGROUND_COLOR = (255, 255, 255, 0)
 BOARD_COLOR = BLUE
 
 BOARD_MARGIN = 10
@@ -19,6 +19,7 @@ CELL_RADIUS = 40
 CELL_SIZE = 2 * (CELL_RADIUS + CELL_MARGIN)
 INSERTION_AREA_HEIGHT = 100
 
+COINS_SPEED = 2
 
 WINNER = {"en": "{} wins the game !",
           "fr": "{} a gagné la partie !"}
@@ -26,10 +27,11 @@ WINNER = {"en": "{} wins the game !",
 
 class GridView:
     def __init__(self, grid: Grid):
+        self.cell_size = CELL_SIZE
         self.grid = grid
         width = self.grid.cols * CELL_SIZE
         height = self.grid.rows * CELL_SIZE
-        self.surface = pygame.Surface((width, height))
+        self.surface = pygame.Surface((width, height), pygame.SRCALPHA)
 
     def update(self):
         self.surface.fill(BOARD_COLOR)
@@ -45,10 +47,13 @@ class GridView:
             color = RED
         else:
             color = YELLOW
-        center_x = col * CELL_SIZE + CELL_SIZE // 2
-        center_y = row * CELL_SIZE + CELL_SIZE // 2
-        pygame.draw.circle(self.surface, color, (center_x, center_y), CELL_RADIUS)
+        x, y = self.get_coordinate_of(row, col)
+        pygame.draw.circle(self.surface, color, (x, y), CELL_RADIUS)
 
+    def get_coordinate_of(self, row: int, col: int) -> tuple[int, int]:
+        center_x = col * self.cell_size + self.cell_size // 2
+        center_y = row * self.cell_size + self.cell_size // 2
+        return center_x, center_y
 
 class View:
     def __init__(self, game: Game):
@@ -60,6 +65,7 @@ class View:
         self.chosen_column = 0
         pygame.font.init()
         self.font = pygame.font.SysFont(pygame.font.get_default_font(), 64)
+        self.speed = COINS_SPEED
 
     def update(self):
         self.screen.fill(BACKGROUND_COLOR)
@@ -73,15 +79,24 @@ class View:
         pygame.display.update()
 
     def draw_next_coin(self):
+        center = self.get_center_of_next_coin()
+        color = self.get_color()
+        self.draw_coin(center, color)
+
+    def get_center_of_next_coin(self):
         chosen_column = self.get_chosen_column()
         dist_between_2_center = 2 * (CELL_RADIUS + CELL_MARGIN)
         first_center = CELL_RADIUS + CELL_MARGIN + BOARD_MARGIN
-        center = (chosen_column * dist_between_2_center + first_center, CELL_MARGIN + CELL_RADIUS)
+        return chosen_column * dist_between_2_center + first_center, CELL_MARGIN + CELL_RADIUS
+
+    def get_coordinate_of(self, row, col):
+        x, y = self.grid_view.get_coordinate_of(row, col)
+        return x + BOARD_MARGIN, y + INSERTION_AREA_HEIGHT
+
+    def get_color(self):
         if self.game.get_current_player() == "Sylvain":
-            color = RED
-        else:
-            color = YELLOW
-        self.draw_coin(center, color)
+            return RED
+        return YELLOW
 
     def draw_coin(self, center, color):
         pygame.draw.circle(self.screen, color, center, CELL_RADIUS)
@@ -91,3 +106,17 @@ class View:
         if x < BOARD_MARGIN:
             return 0
         return (x - BOARD_MARGIN) // CELL_SIZE
+
+    def animate_coin_chute(self):
+        color = self.get_color()
+        x, y = self.get_center_of_next_coin()
+        col = self.get_chosen_column()
+        row = self.game.grid.get_free_row(col)
+        x_f, y_f = self.get_coordinate_of(row, col)
+        while y < y_f:
+            self.screen.fill(BACKGROUND_COLOR)
+            self.draw_coin((x, y), color)
+            self.grid_view.update()
+            self.screen.blit(self.grid_view.surface, (BOARD_MARGIN, INSERTION_AREA_HEIGHT))
+            pygame.display.update()
+            y += self.speed
