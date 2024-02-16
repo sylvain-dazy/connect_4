@@ -9,6 +9,6 @@ LOG_LEVEL = logging.INFO
 
 if __name__ == '__main__':
     logging.basicConfig(level=LOG_LEVEL)
-    game = Game("Sylvain", "Julien")
+    game = Game("Red", "Yellow")
     Controller(game, View(game)).play()
     sys.exit()

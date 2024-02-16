@@ -66,13 +66,14 @@ class View:
         pygame.font.init()
         self.font = pygame.font.SysFont(pygame.font.get_default_font(), 64)
         self.speed = COINS_SPEED
+        self.lang = "en"
 
     def update(self):
         self.screen.fill(BACKGROUND_COLOR)
         if self.game.get_winner() is None:
             self.draw_next_coin()
         else:
-            rendered = self.font.render(WINNER["en"].format(self.game.get_winner()), True, BLACK)
+            rendered = self.font.render(WINNER[self.lang].format(self.game.get_winner()), True, BLACK)
             self.screen.blit(rendered, ((self.screen.get_width() - rendered.get_width()) // 2, (INSERTION_AREA_HEIGHT - rendered.get_height()) // 2))
         self.grid_view.update()
         self.screen.blit(self.grid_view.surface, (BOARD_MARGIN, INSERTION_AREA_HEIGHT))
@@ -94,7 +95,7 @@ class View:
         return x + BOARD_MARGIN, y + INSERTION_AREA_HEIGHT
 
     def get_color(self):
-        if self.game.get_current_player() == "Sylvain":
+        if self.game.current_player == 0:
             return RED
         return YELLOW
 
