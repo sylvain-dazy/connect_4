@@ -34,3 +34,6 @@ class Grid:
 
     class InvalidColumnError(Exception):
         pass
+
+    def reset(self):
+        self.state = [[Grid.FREE for _ in range(self.cols)] for _ in range(self.rows)]

@@ -24,6 +24,8 @@ class Controller:
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.game.get_winner() is None:
                     self.view.animate_coin_chute()
                     self.game.play(self.view.get_chosen_column())
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_n:
+                    self.game.reset()
             self.view.update()
         self.clock.tick(FPS)
         pygame.quit()

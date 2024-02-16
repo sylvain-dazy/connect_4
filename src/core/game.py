@@ -17,8 +17,7 @@ class Game:
     def reset(self):
         self.winner = None
         self.current_player = 0
-        self.grid = Grid(ROWS, COLS)
-        self.connect_four_checker = ConnectFourChecker(self.grid)
+        self.grid.reset()
 
     def get_current_player(self):
         return self.players[self.current_player]
