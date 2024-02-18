@@ -56,3 +56,6 @@ def test_check_four_in_diagonal_top_left_to_bottom_right():
             [Grid.FREE, Grid.FREE, "Y",       "y",       "R", Grid.FREE, Grid.FREE],
             [Grid.FREE, Grid.FREE, "Y",       "Y",       "Y",       "R", Grid.FREE]]
     assert_winner(grid, "R")
+
+
+# TODO: Some diagonal cases are missing
