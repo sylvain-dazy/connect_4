@@ -9,8 +9,9 @@ BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
+TRANSPARENCY = (0, 0, 0, 0)
 
-BACKGROUND_COLOR = (255, 255, 255, 0)
+BACKGROUND_COLOR = WHITE
 BOARD_COLOR = BLUE
 
 BOARD_MARGIN = 10
@@ -42,7 +43,7 @@ class GridView:
     def draw_coin(self, row, col):
         coin = self.grid.state[row][col]
         if coin == Grid.FREE:
-            color = BACKGROUND_COLOR
+            color = TRANSPARENCY
         elif coin == 0:
             color = RED
         else:
