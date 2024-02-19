@@ -14,6 +14,7 @@ TRANSPARENCY = (0, 0, 0, 0)
 
 BACKGROUND_COLOR = WHITE
 BOARD_COLOR = BLUE
+FONT_COLOR = BLACK
 
 BOARD_MARGIN = 10
 CELL_MARGIN = 6
@@ -75,8 +76,11 @@ class View:
         if self.game.get_winner() is None:
             self.draw_next_coin()
         else:
-            rendered = self.font.render(WINNER[self.lang].format(self.game.get_winner()), True, BLACK)
-            self.screen.blit(rendered, ((self.screen.get_width() - rendered.get_width()) // 2, (INSERTION_AREA_HEIGHT - rendered.get_height()) // 2))
+            text = WINNER[self.lang].format(self.game.get_winner())
+            rendered = self.font.render(text, True, FONT_COLOR)
+            center_x = (self.screen.get_width() - rendered.get_width()) // 2
+            center_y = (INSERTION_AREA_HEIGHT - rendered.get_height()) // 2
+            self.screen.blit(rendered, (center_x, center_y))
         self.grid_view.update()
         self.screen.blit(self.grid_view.surface, (BOARD_MARGIN, INSERTION_AREA_HEIGHT))
         pygame.display.update()
