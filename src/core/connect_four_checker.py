@@ -7,12 +7,12 @@ class ConnectFourChecker:
         self.grid = grid
 
     def check(self):
-        for row in range(self.grid.rows):
-            w = self.connect_four_in_row(row)
+        for r in range(self.grid.rows):
+            w = self.connect_four_in_row(r)
             if w is not None:
                 return w
-        for col in range(self.grid.cols):
-            w = self.connect_four_in_col(col)
+        for c in range(self.grid.cols):
+            w = self.connect_four_in_col(c)
             if w is not None:
                 return w
         for r in range(self.grid.rows):
@@ -24,7 +24,7 @@ class ConnectFourChecker:
             if w is not None:
                 return w
         for r in range(self.grid.rows):
-            w = self.connect_four_in_diagonal_bottom_left_to_top_right(r, 0)
+            w = self.connect_four_in_diagonal_top_left_to_bottom_right(r, 0)
             if w is not None:
                 return w
         for c in range(self.grid.cols):

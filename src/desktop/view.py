@@ -10,11 +10,14 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
+GREEN = (0, 255, 0)
 TRANSPARENCY = (0, 0, 0, 0)
 
 BACKGROUND_COLOR = WHITE
 BOARD_COLOR = BLUE
 FONT_COLOR = BLACK
+FIRST_PLAYER_COLOR = RED
+SECOND_PLAYER_COLOR = YELLOW
 
 BOARD_MARGIN = 10
 CELL_MARGIN = 6
@@ -24,6 +27,7 @@ INSERTION_AREA_HEIGHT = 100
 
 COINS_SPEED = 2
 
+LANG = "en"
 WINNER = {"en": "{} wins the game !",
           "fr": "{} a gagné la partie !"}
 
@@ -47,9 +51,9 @@ class GridView:
         if coin == Grid.FREE:
             color = TRANSPARENCY
         elif coin == 0:
-            color = RED
+            color = FIRST_PLAYER_COLOR
         else:
-            color = YELLOW
+            color = SECOND_PLAYER_COLOR
         x, y = self.get_coordinate_of(row, col)
         pygame.draw.circle(self.surface, color, (x, y), COIN_RADIUS)
 
@@ -57,6 +61,7 @@ class GridView:
         center_x = col * self.cell_size + self.cell_size // 2
         center_y = row * self.cell_size + self.cell_size // 2
         return center_x, center_y
+
 
 class View:
     def __init__(self, game: Game):
@@ -66,10 +71,9 @@ class View:
         window_height = self.grid_view.surface.get_height() + INSERTION_AREA_HEIGHT + BOARD_MARGIN
         self.screen = pygame.display.set_mode((window_width, window_height))
         self.chosen_column = 0
-        pygame.font.init()
         self.font = pygame.font.SysFont(pygame.font.get_default_font(), 64)
         self.speed = COINS_SPEED
-        self.lang = "en"
+        self.lang = LANG
 
     def update(self):
         self.screen.fill(BACKGROUND_COLOR)
@@ -102,8 +106,8 @@ class View:
 
     def get_color(self):
         if self.game.current_player == 0:
-            return RED
-        return YELLOW
+            return FIRST_PLAYER_COLOR
+        return SECOND_PLAYER_COLOR
 
     def draw_coin(self, center, color):
         pygame.draw.circle(self.screen, color, center, COIN_RADIUS)
@@ -130,5 +134,6 @@ class View:
             pygame.display.update()
             y += self.speed
 
-    def display_error_message(self, msg: str):
+    @staticmethod
+    def display_error_message(msg: str):
         logging.getLogger().error(msg)

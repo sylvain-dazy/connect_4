@@ -58,4 +58,11 @@ def test_check_four_in_diagonal_top_left_to_bottom_right():
     assert_winner(grid, "R")
 
 
-# TODO: Some diagonal cases are missing
+def test_bug():
+    grid = [[Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE],
+            [Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE],
+            ["Y", Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE],
+            ["R",       "Y", Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE],
+            ["R",       "R",       "Y", Grid.FREE, Grid.FREE, Grid.FREE, Grid.FREE],
+            ["R",       "R",       "R",       "Y", Grid.FREE, Grid.FREE, Grid.FREE]]
+    assert_winner(grid, "Y")
