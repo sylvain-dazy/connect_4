@@ -19,13 +19,25 @@ class Game:
         self.players = [first, second]
         self.current_player = 0
         self.winner = None
-        self.grid = [[None for _ in range(self.cols())] for _ in range(self.rows())]
+        self.grid = self.__new_empty_grid()
         self.count_to_win = count_to_win
+
+    def rows(self):
+        return self.number_of_rows
+
+    def cols(self):
+        return self.number_of_cols
+
+    def get_winner(self):
+        return self.winner
+
+    def get_coin_at(self, row: int, col: int):
+        return self.grid[row][col]
 
     def reset(self):
         self.winner = None
         self.current_player = 0
-        self.grid = [[None for _ in range(self.cols())] for _ in range(self.rows())]
+        self.grid = self.__new_empty_grid()
         self.inserted_coins = 0
 
     def get_current_player(self):
@@ -34,30 +46,24 @@ class Game:
     def play(self, column: int):
         if self.is_over():
             return
-        if not self.__is_valid(column):
+        if not self.__is_column_valid(column):
             raise InvalidColumnError
         if self.__is_column_full(column):
             raise ColumnFullError
-        self.insert(self.get_current_player(), column)
+        free_row = self.__get_free_row(column)
+        coin = self.get_current_player()
+        self.grid[free_row][column] = coin
+        self.inserted_coins += 1
         self.winner = self.check()
         self.current_player = self.__next_player()
 
     def __next_player(self) -> int:
         return (self.current_player + 1) % len(self.players)
 
-    def get_winner(self):
-        return self.winner
+    def __new_empty_grid(self):
+        return [[None for _ in range(self.cols())] for _ in range(self.rows())]
 
-    def rows(self):
-        return self.number_of_rows
-
-    def cols(self):
-        return self.number_of_cols
-
-    def get_coin_at(self, row: int, col: int) -> object:
-        return self.grid[row][col]
-
-    def __is_valid(self, column: int) -> bool:
+    def __is_column_valid(self, column: int) -> bool:
         return 0 <= column < self.cols()
 
     def __is_column_full(self, column: int) -> bool:
@@ -65,11 +71,6 @@ class Game:
 
     def is_over(self) -> bool:
         return self.get_winner() is not None or self.__is_full()
-
-    def insert(self, coin, column: int):
-        free_row = self.__get_free_row(column)
-        self.grid[free_row][column] = coin
-        self.inserted_coins += 1
 
     def __get_free_row(self, column: int) -> int:
         free_row = self.rows() - 1

@@ -109,7 +109,7 @@ class View:
         if x < cfg.BOARD_MARGIN:
             return 0
         if x > cfg.BOARD_MARGIN + self.grid_view.surface.get_width():
-            return self.game.grid.cols - 1
+            return self.game.cols() - 1
         return (x - cfg.BOARD_MARGIN) // self.grid_view.cell_size
 
     def get_row_of_last_inserted_coin(self, col):
