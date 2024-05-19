@@ -29,6 +29,9 @@ FONT_SIZE = 48
 WINNER = {"en": "{} wins the game !",
           "fr": "{} a gagné la partie !"}
 
+DRAWN_GAME = {"en": "It's a draw !",
+              "fr": "Match nul !"}
+
 FPS = 50
 
 LOG_LEVEL = logging.INFO

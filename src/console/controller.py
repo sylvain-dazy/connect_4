@@ -18,6 +18,6 @@ class Controller:
                 running = False
             elif user_action == self.view.new_game_action:
                 self.game.reset()
-            elif self.game.winner is None:
+            elif self.game.get_winner() is None:
                 column = int(user_action)
                 self.game.play(column - 1)

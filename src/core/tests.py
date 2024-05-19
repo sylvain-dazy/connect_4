@@ -1,35 +1,148 @@
 import pytest
 
-from src.core.connect_four_checker import ConnectFourChecker
-from src.core.game import Game
-from src.core.grid import Grid
+from src.core.game import Game, InvalidColumnError, ColumnFullError
+
+ROWS = 6
+COLS = 7
+FIRST_PLAYER = "Alice"
+SECOND_PLAYER = "Bob"
+
+
+def assert_grid_is_empty(game):
+    for row in range(game.rows()):
+        for col in range(game.cols()):
+            assert game.get_coin_at(row, col) is None
 
 
 @pytest.fixture
 def game():
-    return Game("Sylvain", "Julien")
+    return Game(FIRST_PLAYER, SECOND_PLAYER)
 
 
 def test_first_player(game):
-    assert game.get_current_player() == "Sylvain"
+    assert game.get_current_player() == FIRST_PLAYER
 
 
-def test_next_player(game):
+def test_grid_of_new_game_is_empty(game):
+    assert game.rows() == ROWS
+    assert game.cols() == COLS
+    assert_grid_is_empty(game)
+
+
+def test_play_one_coin(game):
     game.play(0)
-    assert game.get_current_player() == "Julien"
+    assert game.get_coin_at(5, 0) == FIRST_PLAYER
+    for row in range(game.rows()):
+        for col in range(game.cols()):
+            if (row, col) != (5, 0):
+                assert game.get_coin_at(row, col) is None
 
 
-def test_when_last_player_played_should_be_first_player_turn(game):
+def test_reset_game(game):
+    game.play(0)
+    game.reset()
+    assert_grid_is_empty(game)
+    assert game.get_current_player() == FIRST_PLAYER
+
+
+def test_after_first_player_has_played_it_is_second_player_turn(game):
+    game.play(0)
+    assert game.get_current_player() == SECOND_PLAYER
+
+
+def test_when_second_player_has_played_then_turn_goes_to_first_player(game):
     game.play(0)
     game.play(0)
-    assert game.get_current_player() == "Sylvain"
+    assert game.get_current_player() == FIRST_PLAYER
+
+
+def test_stack_coins_on_the_same_column(game):
+    game.play(0)
+    game.play(0)
+    game.play(0)
+    """
+       0 1 2 3 4 5 6
+    0 | | | | | | | |
+    1 | | | | | | | |
+    2 | | | | | | | |
+    3 |A| | | | | | |
+    4 |B| | | | | | |
+    5 |A| | | | | | |
+    """
+    assert game.get_coin_at(5, 0) == FIRST_PLAYER
+    assert game.get_coin_at(4, 0) == SECOND_PLAYER
+    assert game.get_coin_at(3, 0) == FIRST_PLAYER
 
 
 def test_no_winner(game):
+    assert game.is_over() is False
     assert game.get_winner() is None
 
 
-def test_winner(game):
+def test_try_inserting_in_an_invalid_column(game):
+    with pytest.raises(InvalidColumnError):
+        game.play(-1)
+    game.play(6)
+    with pytest.raises(InvalidColumnError):
+        game.play(7)
+
+
+def test_try_inserting_in_a_full_column(game):
+    for _ in range(game.rows()):
+        game.play(0)
+    with pytest.raises(ColumnFullError):
+        game.play(0)
+
+
+def test_initially_there_is_no_winner(game):
+    assert not game.is_over()
+    assert game.get_winner() is None
+
+
+def test_check_four_in_row(game):
+    game.play(0)
+    game.play(0)
+    game.play(1)
+    game.play(1)
+    game.play(2)
+    game.play(2)
+    game.play(3)
+    """
+       0 1 2 3 4 5 6
+    0 | | | | | | | |
+    1 | | | | | | | |
+    2 | | | | | | | |
+    3 | | | | | | | |
+    4 |B|B|B| | | | |
+    5 |A|A|A|A| | | |
+    """
+    assert game.is_over()
+    assert game.get_winner() is FIRST_PLAYER
+
+
+def test_when_the_game_is_over_cannot_play_anymore_coins(game):
+    game.play(0)
+    game.play(0)
+    game.play(1)
+    game.play(1)
+    game.play(2)
+    game.play(2)
+    game.play(3)
+    assert game.is_over()
+    game.play(4)
+    """
+       0 1 2 3 4 5 6
+    0 | | | | | | | |
+    1 | | | | | | | |
+    2 | | | | | | | |
+    3 | | | | | | | |
+    4 |B|B|B| | | | |
+    5 |A|A|A|A| | | |
+    """
+    assert game.get_coin_at(5, 4) is None
+
+
+def test_check_four_in_col(game):
     game.play(0)
     game.play(1)
     game.play(0)
@@ -37,141 +150,142 @@ def test_winner(game):
     game.play(0)
     game.play(1)
     game.play(0)
-    assert game.get_winner() == "Sylvain"
+    """
+       0 1 2 3 4 5 6
+    0 | | | | | | | |
+    1 | | | | | | | |
+    2 |A| | | | | | |
+    3 |A|B| | | | | |
+    4 |A|B| | | | | |
+    5 |A|B| | | | | |
+    """
+    assert game.is_over()
+    assert game.get_winner() == FIRST_PLAYER
 
 
-def assert_winner(initial_state: list[list], expected_winner: object | None):
-    for r in range(1, len(initial_state)):
-        assert len(initial_state[r]) == len(initial_state[0])
-    g = Grid(len(initial_state), len(initial_state[0]), initial_state=initial_state)
-    checker = ConnectFourChecker(g, 4)
-    assert checker.check() is expected_winner
+def test_check_four_in_diagonal_bottom_left_to_top_right(game):
+    game.play(0)
+    game.play(1)
+    game.play(1)
+    game.play(2)
+    game.play(3)
+    game.play(2)
+    game.play(2)
+    game.play(3)
+    game.play(4)
+    game.play(3)
+    game.play(3)
+    """
+       0 1 2 3 4 5 6
+    0 | | | | | | | |
+    1 | | | | | | | |
+    2 | | | |A| | | |
+    3 | | |A|B| | | |
+    4 | |A|B|B| | | |
+    5 |A|B|B|A|A| | |
+    """
+    assert game.is_over()
+    assert game.get_winner() == FIRST_PLAYER
 
 
-def test_check_no_winner():
-    grid = [[Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN]]
-    assert_winner(grid, None)
+def test_check_four_in_diagonal_top_left_to_bottom_right(game):
+    game.play(6)
+    game.play(5)
+    game.play(5)
+    game.play(4)
+    game.play(4)
+    game.play(3)
+    game.play(4)
+    game.play(3)
+    game.play(2)
+    game.play(3)
+    game.play(3)
+    """
+       0 1 2 3 4 5 6
+    0 | | | | | | | |
+    1 | | | | | | | |
+    2 | | | |A| | | |
+    3 | | | |B|A| | |
+    4 | | | |B|A|A| |
+    5 | | |A|B|B|B|A|
+    """
+    assert game.is_over()
+    assert game.get_winner() == FIRST_PLAYER
 
 
-def test_check_four_in_row():
-    grid = [[Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, "R", "R", "R", "R", Grid.NO_COIN]]
-    assert_winner(grid, "R")
+def test_if_grid_is_full_and_no_winner_then_game_is_over_and_it_is_a_pat(game):
+    game.play(0)
+    game.play(0)
+    game.play(0)
+    game.play(0)
+    game.play(0)
+    game.play(0)
+    game.play(2)
+    game.play(2)
+    game.play(2)
+    game.play(2)
+    game.play(2)
+    game.play(2)
+    game.play(4)
+    game.play(4)
+    game.play(4)
+    game.play(4)
+    game.play(4)
+    game.play(4)
+    game.play(6)
+    game.play(6)
+    game.play(6)
+    game.play(6)
+    game.play(6)
+    game.play(6)
+    game.play(1)
+    game.play(3)
+    game.play(5)
+    game.play(1)
+    game.play(3)
+    game.play(5)
+    game.play(1)
+    game.play(3)
+    game.play(5)
+    game.play(1)
+    game.play(3)
+    game.play(5)
+    game.play(1)
+    game.play(3)
+    game.play(5)
+    game.play(1)
+    game.play(3)
+    game.play(5)
+    """
+       0 1 2 3 4 5 6
+    0 |S|S|S|F|S|S|S|
+    1 |F|F|F|S|F|F|F|
+    2 |S|S|S|F|S|S|S|
+    3 |F|F|F|S|F|F|F|
+    4 |S|S|S|F|S|S|S|
+    5 |F|F|F|S|F|F|F|
+    """
+    assert game.get_winner() is None
+    assert game.is_over()
 
 
-def test_check_four_in_col():
-    grid = [[Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, "R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, "R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, "R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, "R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN]]
-    assert_winner(grid, "R")
-
-
-def test_check_four_in_diagonal_bottom_left_to_top_right():
-    grid = [[Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, "R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, "R", "Y", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, "R", "Y", "y", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            ["R",       "Y",       "Y",       "y", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN]]
-    assert_winner(grid, "R")
-
-
-def test_check_four_in_diagonal_top_left_to_bottom_right():
-    grid = [[Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, "R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, "Y", "R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, "Y", "y", "R", Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, "Y", "Y", "Y", "R", Grid.NO_COIN]]
-    assert_winner(grid, "R")
-
-
-def test_bug():
-    grid = [[Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            ["Y", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            ["R",       "Y", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            ["R",       "R",       "Y", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-            ["R",       "R",       "R",       "Y", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN]]
-    assert_winner(grid, "Y")
-
-
-@pytest.fixture
-def grid():
-    return Grid(6, 7)
-
-
-def fill_in_column(grid, column):
-    for _ in range(grid.rows):
-        grid.insert("R", column)
-
-
-def test_new_grids_are_empty(grid):
-    assert grid.rows == 6
-    assert grid.cols == 7
-    assert grid.state == [[Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN]]
-    assert grid.is_full() is False
-
-
-def test_insert_coin(grid):
-    grid.insert("R", 0)
-    assert grid.state == [[Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          [Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          ["R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN]]
-
-
-def test_try_inserting_in_an_invalid_column(grid):
-    with pytest.raises(Grid.InvalidColumnError):
-        grid.insert("R", -1)
-    with pytest.raises(Grid.InvalidColumnError):
-        grid.insert("R", 7)
-
-
-def test_fill_in_column(grid):
-    fill_in_column(grid, 0)
-    assert grid.state == [["R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          ["R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          ["R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          ["R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          ["R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN],
-                          ["R", Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN, Grid.NO_COIN]]
-
-
-def test_grid_is_full(grid):
-    assert grid.is_full() is False
-    fill_in_column(grid, 0)
-    fill_in_column(grid, 1)
-    fill_in_column(grid, 2)
-    fill_in_column(grid, 3)
-    fill_in_column(grid, 4)
-    fill_in_column(grid, 5)
-    fill_in_column(grid, 6)
-    assert grid.is_full() is True
-    grid.reset()
-    assert grid.is_full() is False
-
-
-def test_try_inserting_in_a_full_column(grid):
-    fill_in_column(grid, 0)
-    with pytest.raises(Grid.ColumnFullError):
-        grid.insert("R", 0)
+def test_reset_winner(game):
+    game.play(0)
+    game.play(0)
+    game.play(1)
+    game.play(1)
+    game.play(2)
+    game.play(2)
+    game.play(3)
+    """
+       0 1 2 3 4 5 6
+    0 | | | | | | | |
+    1 | | | | | | | |
+    2 | | | | | | | |
+    3 | | | | | | | |
+    4 |B|B|B| | | | |
+    5 |A|A|A|A| | | |
+    """
+    assert game.get_winner() is not None
+    game.reset()
+    assert game.get_winner() is None

@@ -5,7 +5,6 @@ import pygame
 import src.desktop.configuration as cfg
 
 from src.core.game import Game
-from src.core.grid import Grid
 
 
 def draw_coin(surface, color, center):
@@ -14,26 +13,26 @@ def draw_coin(surface, color, center):
 
 
 class GridView:
-    def __init__(self, grid: Grid):
+    def __init__(self, game: Game):
         self.cell_size = 2 * (cfg.COIN_RADIUS + cfg.CELL_MARGIN)
         self.cell_size = self.cell_size
-        self.grid = grid
-        width = self.grid.cols * self.cell_size
-        height = self.grid.rows * self.cell_size
+        self.game = game
+        width = self.game.cols() * self.cell_size
+        height = self.game.rows() * self.cell_size
         self.surface = pygame.Surface((width, height), pygame.SRCALPHA)
 
     def update(self):
         self.surface.fill(cfg.BOARD_COLOR)
-        for row in range(self.grid.rows):
-            for col in range(self.grid.cols):
+        for row in range(self.game.rows()):
+            for col in range(self.game.cols()):
                 self.draw_coin(row, col)
         pygame.draw.rect(self.surface, cfg.EDGE_COLOR, self.surface.get_rect(), width=cfg.EDGE_WIDTH)
 
     def draw_coin(self, row, col):
-        coin = self.grid.state[row][col]
-        if coin == Grid.NO_COIN:
+        coin = self.game.get_coin_at(row, col)
+        if coin is None:
             color = cfg.TRANSPARENCY
-        elif coin == 0:
+        elif coin == cfg.PLAYERS[0][0]:
             color = cfg.PLAYERS[0][1]
         else:
             color = cfg.PLAYERS[1][1]
@@ -49,7 +48,7 @@ class GridView:
 class View:
     def __init__(self, game: Game, lang: str = cfg.LANG):
         self.game = game
-        self.grid_view = GridView(self.game.grid)
+        self.grid_view = GridView(self.game)
         self.insertion_area_height = 2 * (cfg.COIN_RADIUS + cfg.BOARD_MARGIN)
         window_width = self.grid_view.surface.get_width() + 2 * cfg.BOARD_MARGIN
         window_height = self.grid_view.surface.get_height() + self.insertion_area_height + cfg.BOARD_MARGIN
@@ -61,8 +60,10 @@ class View:
 
     def update(self):
         self.screen.fill(cfg.BACKGROUND_COLOR)
-        if self.game.get_winner() is None:
+        if not self.game.is_over():
             self.draw_next_coin()
+        elif self.game.is_over() and self.game.get_winner() is None:
+            self.draw_drawn_game()
         else:
             self.draw_winner()
         self.grid_view.update()
@@ -71,6 +72,13 @@ class View:
 
     def draw_winner(self):
         text = cfg.WINNER[self.lang].format(self.game.get_winner())
+        rendered = self.font.render(text, True, cfg.FONT_COLOR)
+        x = (self.screen.get_width() - rendered.get_width()) // 2
+        y = (self.insertion_area_height - rendered.get_height()) // 2
+        self.screen.blit(rendered, (x, y))
+
+    def draw_drawn_game(self):
+        text = cfg.DRAWN_GAME[self.lang]
         rendered = self.font.render(text, True, cfg.FONT_COLOR)
         x = (self.screen.get_width() - rendered.get_width()) // 2
         y = (self.insertion_area_height - rendered.get_height()) // 2

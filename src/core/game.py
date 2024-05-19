@@ -6,6 +6,14 @@ DEFAULT_COLS = 7
 DEFAULT_COUNT_TO_WIN = 4
 
 
+class InvalidColumnError(RuntimeError):
+    pass
+
+
+class ColumnFullError(RuntimeError):
+    pass
+
+
 class Game:
     def __init__(self, first, second, rows: int = DEFAULT_ROWS, cols: int = DEFAULT_COLS, count_to_win: int = DEFAULT_COUNT_TO_WIN):
         self.players = [first, second]
@@ -23,7 +31,13 @@ class Game:
         return self.players[self.current_player]
 
     def play(self, column: int):
-        self.grid.insert(self.current_player, column)
+        if self.is_over():
+            return
+        if not self.is_valid(column):
+            raise InvalidColumnError
+        if self.is_column_full(column):
+            raise ColumnFullError
+        self.grid.insert(self.get_current_player(), column)
         self.winner = self.connect_four_checker.check()
         self.current_player = self.next_player()
 
@@ -31,9 +45,25 @@ class Game:
         return (self.current_player + 1) % len(self.players)
 
     def get_winner(self):
-        if self.winner is not None:
-            return self.players[self.winner]
-        return None
+        return self.winner
+
+    def rows(self):
+        return self.grid.rows
+
+    def cols(self):
+        return self.grid.cols
+
+    def get_coin_at(self, row: int, col: int):
+        return self.grid.state[row][col]
+
+    def is_valid(self, column: int) -> bool:
+        return 0 <= column < self.cols()
+
+    def is_column_full(self, column: int) -> bool:
+        return self.get_coin_at(0, column) is not Grid.NO_COIN
+
+    def is_over(self) -> bool:
+        return self.get_winner() is not None or self.grid.is_full()
 
 
 class ObservableGame(Game):
