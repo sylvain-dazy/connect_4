@@ -31,17 +31,10 @@ class Controller:
             self.col = self.view.get_chosen_column()
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.game.get_winner() is None:
             try:
+                self.view.animate_coin_chute(self.game.get_current_player())
                 self.game.play(self.col)
-                # self.view.animate_coin_chute() # Bug
             except ColumnFullError:
                 self.view.display_error_message("Column is full")
-            '''
-            if self.game.grid.get_free_row(self.col) < 0:
-                self.view.display_error_message("Column is full")
-            else:
-                self.view.animate_coin_chute()
-                self.game.play(self.col)
-            '''
         elif event.type == pygame.MOUSEMOTION and self.game.get_winner() is None:
             self.col = self.view.get_chosen_column()
             self.view.update()

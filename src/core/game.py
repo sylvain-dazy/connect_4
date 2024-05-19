@@ -33,15 +33,15 @@ class Game:
     def play(self, column: int):
         if self.is_over():
             return
-        if not self.is_valid(column):
+        if not self.__is_valid(column):
             raise InvalidColumnError
-        if self.is_column_full(column):
+        if self.__is_column_full(column):
             raise ColumnFullError
         self.grid.insert(self.get_current_player(), column)
         self.winner = self.connect_four_checker.check()
-        self.current_player = self.next_player()
+        self.current_player = self.__next_player()
 
-    def next_player(self) -> int:
+    def __next_player(self) -> int:
         return (self.current_player + 1) % len(self.players)
 
     def get_winner(self):
@@ -56,11 +56,11 @@ class Game:
     def get_coin_at(self, row: int, col: int):
         return self.grid.state[row][col]
 
-    def is_valid(self, column: int) -> bool:
+    def __is_valid(self, column: int) -> bool:
         return 0 <= column < self.cols()
 
-    def is_column_full(self, column: int) -> bool:
-        return self.get_coin_at(0, column) is not Grid.NO_COIN
+    def __is_column_full(self, column: int) -> bool:
+        return self.get_coin_at(0, column) is not None
 
     def is_over(self) -> bool:
         return self.get_winner() is not None or self.grid.is_full()

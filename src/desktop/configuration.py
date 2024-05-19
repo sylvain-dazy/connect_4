@@ -20,11 +20,11 @@ EDGE_COLOR = BLACK
 EDGE_WIDTH = 2
 BOARD_MARGIN = 10
 CELL_MARGIN = 5
-COIN_RADIUS = 30
+COIN_RADIUS = 40
 COINS_SPEED = 2
 
 FONT = pygame.font.get_default_font()
-FONT_SIZE = 48
+FONT_SIZE = 64
 
 WINNER = {"en": "{} wins the game !",
           "fr": "{} a gagné la partie !"}

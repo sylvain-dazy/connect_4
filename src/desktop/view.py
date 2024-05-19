@@ -86,7 +86,7 @@ class View:
 
     def draw_next_coin(self):
         center = self.get_center_of_next_coin()
-        color = self.get_color()
+        color = self.get_color(self.game.get_current_player())
         draw_coin(self.screen, color, center)
 
     def get_center_of_next_coin(self):
@@ -99,8 +99,8 @@ class View:
         x, y = self.grid_view.get_coordinate_of(row, col)
         return x + cfg.BOARD_MARGIN, y + self.insertion_area_height
 
-    def get_color(self):
-        if self.game.current_player == 0:
+    def get_color(self, player):
+        if player == cfg.PLAYERS[0][0]:
             return cfg.PLAYERS[0][1]
         return cfg.PLAYERS[1][1]
 
@@ -112,19 +112,26 @@ class View:
             return self.game.grid.cols - 1
         return (x - cfg.BOARD_MARGIN) // self.grid_view.cell_size
 
-    def animate_coin_chute(self):
-        color = self.get_color()
+    def get_row_of_last_inserted_coin(self, col):
+        row = 0
+        while row < self.game.rows() and self.game.get_coin_at(row, col) is None:
+            row += 1
+        return row - 1
+
+    def animate_coin_chute(self, player):
+        color = self.get_color(player)
         x, y = self.get_center_of_next_coin()
         col = self.get_chosen_column()
-        row = self.game.grid.get_free_row(col)
-        x_f, y_f = self.get_coordinate_of(row, col)
-        while y <= y_f:
-            self.screen.fill(cfg.BACKGROUND_COLOR)
-            draw_coin(self.screen, color, (x, y))
-            self.grid_view.update()
-            self.screen.blit(self.grid_view.surface, (cfg.BOARD_MARGIN, self.insertion_area_height))
-            pygame.display.update()
-            y += self.speed
+        row = self.get_row_of_last_inserted_coin(col)
+        if row >= 0:
+            x_f, y_f = self.get_coordinate_of(row, col)
+            while y <= y_f:
+                self.screen.fill(cfg.BACKGROUND_COLOR)
+                draw_coin(self.screen, color, (x, y))
+                self.grid_view.update()
+                self.screen.blit(self.grid_view.surface, (cfg.BOARD_MARGIN, self.insertion_area_height))
+                pygame.display.update()
+                y += self.speed
 
     @staticmethod
     def display_error_message(msg: str):
