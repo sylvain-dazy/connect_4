@@ -3,8 +3,9 @@ from src.core.grid import Grid
 
 class ConnectFourChecker:
 
-    def __init__(self, grid: Grid):
+    def __init__(self, grid: Grid, count_to_win: int):
         self.grid = grid
+        self.count_to_win = count_to_win
 
     def check(self):
         for r in range(self.grid.rows):
@@ -37,15 +38,15 @@ class ConnectFourChecker:
         current = self.grid.state[row][0]
         count = 1
         col = 1
-        while col < self.grid.cols and count < 4:
+        while col < self.grid.cols and count < self.count_to_win:
             c = self.grid.state[row][col]
-            if c != Grid.FREE and c == current:
+            if c != Grid.NO_COIN and c == current:
                 count += 1
             else:
                 current = c
                 count = 1
             col += 1
-        if count == 4:
+        if count == self.count_to_win:
             return current
         return None
 
@@ -53,15 +54,15 @@ class ConnectFourChecker:
         current = self.grid.state[0][col]
         count = 1
         row = 1
-        while row < self.grid.rows and count < 4:
+        while row < self.grid.rows and count < self.count_to_win:
             c = self.grid.state[row][col]
-            if c != Grid.FREE and c == current:
+            if c != Grid.NO_COIN and c == current:
                 count += 1
             else:
                 current = c
                 count = 1
             row += 1
-        if count == 4:
+        if count == self.count_to_win:
             return current
         return None
 
@@ -69,15 +70,15 @@ class ConnectFourChecker:
         current = self.grid.state[row][col]
         count = 1
         i = 1
-        while row - i >= 0 and col + i < self.grid.cols and count < 4:
+        while row - i >= 0 and col + i < self.grid.cols and count < self.count_to_win:
             c = self.grid.state[row - i][col + i]
-            if c != Grid.FREE and c == current:
+            if c != Grid.NO_COIN and c == current:
                 count += 1
             else:
                 current = c
                 count = 1
             i += 1
-        if count == 4:
+        if count == self.count_to_win:
             return current
         return None
 
@@ -85,14 +86,14 @@ class ConnectFourChecker:
         current = self.grid.state[row][col]
         count = 1
         i = 1
-        while row + i < self.grid.rows and col + i < self.grid.cols and count < 4:
+        while row + i < self.grid.rows and col + i < self.grid.cols and count < self.count_to_win:
             c = self.grid.state[row + i][col + i]
-            if c != Grid.FREE and c == current:
+            if c != Grid.NO_COIN and c == current:
                 count += 1
             else:
                 current = c
                 count = 1
             i += 1
-        if count == 4:
+        if count == self.count_to_win:
             return current
         return None

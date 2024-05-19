@@ -1,3 +1,5 @@
+import src.console.configuration as cfg
+
 from src.console.view import View
 from src.core.game import Game
 
@@ -11,7 +13,7 @@ class Controller:
         running = True
         while running:
             self.view.display_game()
-            user_action = input("> ")
+            user_action = input(cfg.USER_ACTION_INVITE_COMMAND.format(self.game.get_current_player()))
             if user_action == self.view.quit_action:
                 running = False
             elif user_action == self.view.new_game_action:

@@ -3,17 +3,19 @@ import sys
 
 import pygame
 
-from src.core.game import Game
+import src.desktop.configuration as cfg
+
+from src.core.game import ObservableGame
 from src.desktop.controller import Controller
 from src.desktop.view import View
 
-LOG_LEVEL = logging.INFO
-
 if __name__ == '__main__':
-    logging.basicConfig(level=LOG_LEVEL)
-    game = Game("Red", "Yellow")
+    logging.basicConfig(level=cfg.LOG_LEVEL)
     pygame.init()
     pygame.font.init()
-    Controller(game, View(game)).run()
+    game = ObservableGame(cfg.PLAYERS[0][0], cfg.PLAYERS[1][0], cfg.ROWS, cfg.COLS, cfg.COUNT_TO_WIN)
+    view = View(game)
+    game.add_observers(view)
+    Controller(game, view).run()
     pygame.quit()
     sys.exit()
