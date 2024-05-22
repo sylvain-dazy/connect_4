@@ -1,88 +1,165 @@
-import logging
-
 import pygame
 
 import src.desktop.configuration as cfg
 
 from src.core.game import Game
 
+WHITE = (255, 255, 255, 255)
+BLACK = (0, 0, 0, 255)
+BLUE = (0, 0, 255, 255)
+RED = (255, 0, 0, 255)
+GREEN = (0, 255, 0, 255)
+YELLOW = (255, 255, 0, 255)
+SKY_BLUE = (0, 255, 255, 255)
+PINK = (255, 0, 255, 255)
+TRANSPARENCY = (0, 0, 0, 0)
 
-def draw_coin(surface, color, center):
-    pygame.draw.circle(surface, color, center, cfg.COIN_RADIUS)
-    pygame.draw.circle(surface, cfg.EDGE_COLOR, center, cfg.COIN_RADIUS, width=cfg.EDGE_WIDTH)
+BACKGROUND_COLOR = WHITE
+BOARD_COLOR = BLUE
+FONT_COLOR = BLACK
+EDGE_COLOR = BLACK
+PLAYERS_COLORS = [RED, YELLOW]
+
+EDGE_WIDTH = 2
+BOARD_MARGIN = 10
+CELL_MARGIN = 5
+COIN_RADIUS = 40
+COINS_SPEED = 2
+
+FONT = pygame.font.get_default_font()
+FONT_SIZE = 64
+
+WINNER_TXT = {"en": "{} wins the game !",
+              "fr": "{} a gagné la partie !"}
+DRAWN_TXT = {"en": "It's a draw !",
+             "fr": "Match nul !"}
 
 
-class GridView:
+def get_cell_size(coin_radius, cell_margin) -> int:
+    return 2 * (coin_radius + cell_margin)
+
+
+CELL_SIZE = get_cell_size(COIN_RADIUS, CELL_MARGIN)
+
+
+def get_coordinate_of(row: int, col: int, cell_size: int) -> tuple[int, int]:
+    center_x = col * cell_size + cell_size // 2
+    center_y = row * cell_size + cell_size // 2
+    return center_x, center_y
+
+
+def get_grid_size(game: Game, cell_size):
+    width = game.cols() * cell_size
+    height = game.rows() * cell_size
+    return width, height
+
+
+class Player:
+    def __init__(self, name: str, coin):
+        self.name = name
+        self.coin = coin
+
+
+class GridPresenter:
     def __init__(self, game: Game):
-        self.cell_size = 2 * (cfg.COIN_RADIUS + cfg.CELL_MARGIN)
-        self.cell_size = self.cell_size
         self.game = game
-        width = self.game.cols() * self.cell_size
-        height = self.game.rows() * self.cell_size
-        self.surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        self.width, self.height = get_grid_size(game, CELL_SIZE)
+        self.players = {Player(cfg.PLAYERS[0], PLAYERS_COLORS[0]),
+                        Player(cfg.PLAYERS[1], PLAYERS_COLORS[1])}
+
+    def draw_grid(self, game):
+        for row in range(game.rows()):
+            for col in range(game.cols()):
+                self.draw_coin(game.get_coin_at(row, col), row, col)
+
+    def get_color(self, player):
+        for p in self.players:
+            if player == p.name:
+                return p.coin
+        return self.get_no_coin_value()
+
+    def get_no_coin_value(self):
+        raise NotImplementedError
+
+    def draw_coin(self, player, row, col):
+        pass
+
+
+def draw_coin(surface: pygame.Surface, color, center: tuple[int, int]):
+    pygame.draw.circle(surface, color, center, COIN_RADIUS)
+    pygame.draw.circle(surface, EDGE_COLOR, center, COIN_RADIUS, width=EDGE_WIDTH)
+
+
+class GridView(GridPresenter):
+    def __init__(self, game: Game):
+        super().__init__(game)
+        self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
     def update(self):
-        self.surface.fill(cfg.BOARD_COLOR)
-        for row in range(self.game.rows()):
-            for col in range(self.game.cols()):
-                self.draw_coin(row, col)
-        pygame.draw.rect(self.surface, cfg.EDGE_COLOR, self.surface.get_rect(), width=cfg.EDGE_WIDTH)
+        self.surface.fill(BOARD_COLOR)
+        super().draw_grid(self.game)
+        pygame.draw.rect(self.surface, EDGE_COLOR, self.surface.get_rect(), width=EDGE_WIDTH)
 
-    def draw_coin(self, row, col):
-        coin = self.game.get_coin_at(row, col)
-        if coin is None:
-            color = cfg.TRANSPARENCY
-        elif coin == cfg.PLAYERS[0][0]:
-            color = cfg.PLAYERS[0][1]
-        else:
-            color = cfg.PLAYERS[1][1]
-        x, y = self.get_coordinate_of(row, col)
+    def draw_coin(self, player, row, col):
+        color = self.get_color(self.game.get_coin_at(row, col))
+        x, y = get_coordinate_of(row, col, CELL_SIZE)
         draw_coin(self.surface, color, (x, y))
 
-    def get_coordinate_of(self, row: int, col: int) -> tuple[int, int]:
-        center_x = col * self.cell_size + self.cell_size // 2
-        center_y = row * self.cell_size + self.cell_size // 2
-        return center_x, center_y
+    def get_no_coin_value(self):
+        return TRANSPARENCY
+
+    def get_size(self):
+        return self.surface.get_width(), self.surface.get_height()
+
+
+def get_window_size(grid_size: tuple[int, int], margin: int, insertion_area_height: int):
+    window_width = grid_size[0] + 2 * margin
+    window_height = grid_size[1] + insertion_area_height + 2 * margin
+    return window_width, window_height
 
 
 class View:
-    def __init__(self, game: Game, lang: str = cfg.LANG):
+    def __init__(self, game: Game, lang: str):
         self.game = game
-        self.grid_view = GridView(self.game)
-        self.insertion_area_height = 2 * (cfg.COIN_RADIUS + cfg.BOARD_MARGIN)
-        window_width = self.grid_view.surface.get_width() + 2 * cfg.BOARD_MARGIN
-        window_height = self.grid_view.surface.get_height() + self.insertion_area_height + cfg.BOARD_MARGIN
-        self.screen = pygame.display.set_mode((window_width, window_height))
-        self.chosen_column = 0
-        self.font = pygame.font.SysFont(cfg.FONT, cfg.FONT_SIZE)
-        self.speed = cfg.COINS_SPEED
         self.lang = lang
+        self.grid = GridView(self.game)
+        self.margin = BOARD_MARGIN
+        self.cell_size = CELL_SIZE
+        self.insertion_area_height = get_cell_size(COIN_RADIUS, self.margin)
+        self.screen = pygame.display.set_mode(get_window_size(self.grid.get_size(), self.margin, self.insertion_area_height))
+        self.font = pygame.font.SysFont(FONT, FONT_SIZE)
+        self.chosen_column = 0
 
     def update(self):
-        self.screen.fill(cfg.BACKGROUND_COLOR)
+        self.screen.fill(BACKGROUND_COLOR)
+        self.draw_insertion_area()
+        self.draw_grid()
+        pygame.display.update()
+
+    def draw_insertion_area(self):
         if not self.game.is_over():
             self.draw_next_coin()
         elif self.game.is_over() and self.game.get_winner() is None:
-            self.draw_drawn_game()
+            self.draw_drawn_game(DRAWN_TXT[self.lang])
         else:
-            self.draw_winner()
-        self.grid_view.update()
-        self.screen.blit(self.grid_view.surface, (cfg.BOARD_MARGIN, self.insertion_area_height))
-        pygame.display.update()
+            self.draw_winner(WINNER_TXT[self.lang].format(self.game.get_winner()))
 
-    def draw_winner(self):
-        text = cfg.WINNER[self.lang].format(self.game.get_winner())
-        rendered = self.font.render(text, True, cfg.FONT_COLOR)
-        x = (self.screen.get_width() - rendered.get_width()) // 2
-        y = (self.insertion_area_height - rendered.get_height()) // 2
-        self.screen.blit(rendered, (x, y))
+    def draw_grid(self):
+        self.grid.update()
+        self.screen.blit(self.grid.surface, (self.margin, self.insertion_area_height))
 
-    def draw_drawn_game(self):
-        text = cfg.DRAWN_GAME[self.lang]
-        rendered = self.font.render(text, True, cfg.FONT_COLOR)
-        x = (self.screen.get_width() - rendered.get_width()) // 2
-        y = (self.insertion_area_height - rendered.get_height()) // 2
-        self.screen.blit(rendered, (x, y))
+    def get_winner_txt_position(self, rendered_text):
+        x = (self.screen.get_width() - rendered_text.get_width()) // 2
+        y = (self.insertion_area_height - rendered_text.get_height()) // 2
+        return x, y
+
+    def draw_winner(self, winner: str):
+        rendered = self.font.render(winner, True, FONT_COLOR)
+        self.screen.blit(rendered, self.get_winner_txt_position(rendered))
+
+    def draw_drawn_game(self, txt: str):
+        rendered = self.font.render(txt, True, FONT_COLOR)
+        self.screen.blit(rendered, self.get_winner_txt_position(rendered))
 
     def draw_next_coin(self):
         center = self.get_center_of_next_coin()
@@ -91,26 +168,26 @@ class View:
 
     def get_center_of_next_coin(self):
         chosen_column = self.get_chosen_column()
-        dist_between_2_center = 2 * (cfg.COIN_RADIUS + cfg.CELL_MARGIN)
-        first_center = cfg.COIN_RADIUS + cfg.CELL_MARGIN + cfg.BOARD_MARGIN
-        return chosen_column * dist_between_2_center + first_center, cfg.CELL_MARGIN + cfg.COIN_RADIUS
+        dist_between_2_center = 2 * (COIN_RADIUS + CELL_MARGIN)
+        first_center = COIN_RADIUS + CELL_MARGIN + self.margin
+        return chosen_column * dist_between_2_center + first_center, CELL_MARGIN + COIN_RADIUS
 
     def get_coordinate_of(self, row, col):
-        x, y = self.grid_view.get_coordinate_of(row, col)
-        return x + cfg.BOARD_MARGIN, y + self.insertion_area_height
+        x, y = get_coordinate_of(row, col, self.cell_size)
+        return x + self.margin, y + self.insertion_area_height
 
-    def get_color(self, player):
-        if player == cfg.PLAYERS[0][0]:
-            return cfg.PLAYERS[0][1]
-        return cfg.PLAYERS[1][1]
+    def get_color(self, player: str):
+        if player == cfg.PLAYERS[0]:
+            return PLAYERS_COLORS[0]
+        return PLAYERS_COLORS[1]
 
     def get_chosen_column(self) -> int:
         x, y = pygame.mouse.get_pos()
-        if x < cfg.BOARD_MARGIN:
+        if x < self.margin:
             return 0
-        if x >= cfg.BOARD_MARGIN + self.grid_view.surface.get_width():
+        if x >= self.margin + self.grid.get_size()[0]:
             return self.game.cols() - 1
-        return (x - cfg.BOARD_MARGIN) // self.grid_view.cell_size
+        return (x - self.margin) // self.cell_size
 
     def get_row_of_last_inserted_coin(self, col):
         row = 0
@@ -126,13 +203,8 @@ class View:
         if row >= 0:
             x_f, y_f = self.get_coordinate_of(row, col)
             while y <= y_f:
-                self.screen.fill(cfg.BACKGROUND_COLOR)
+                self.screen.fill(BACKGROUND_COLOR)
                 draw_coin(self.screen, color, (x, y))
-                self.grid_view.update()
-                self.screen.blit(self.grid_view.surface, (cfg.BOARD_MARGIN, self.insertion_area_height))
+                self.draw_grid()
                 pygame.display.update()
-                y += self.speed
-
-    @staticmethod
-    def display_error_message(msg: str):
-        logging.getLogger(View.__class__.__name__).error(msg)
+                y += COINS_SPEED

@@ -1,5 +1,5 @@
-DEFAULT_ROWS = 6
-DEFAULT_COLS = 7
+DEFAULT_NB_ROWS = 6
+DEFAULT_NB_COLS = 7
 DEFAULT_COUNT_TO_WIN = 4
 
 
@@ -12,23 +12,28 @@ class ColumnFullError(RuntimeError):
 
 
 class Game:
-    def __init__(self, first, second, rows: int = DEFAULT_ROWS, cols: int = DEFAULT_COLS, count_to_win: int = DEFAULT_COUNT_TO_WIN):
+    def __init__(self,
+                 players: list[str],
+                 rows: int = DEFAULT_NB_ROWS,
+                 cols: int = DEFAULT_NB_COLS,
+                 count_to_win: int = DEFAULT_COUNT_TO_WIN):
+        self.players = players
         self.number_of_rows = rows
         self.number_of_cols = cols
-        self.inserted_coins = 0
-        self.players = [first, second]
+        self.count_to_win = count_to_win
         self.current_player = 0
         self.winner = None
+        self.inserted_coins = 0
         self.grid = self.__new_empty_grid()
-        self.count_to_win = count_to_win
+        self.last_inserted = None
 
-    def rows(self):
+    def rows(self) -> int:
         return self.number_of_rows
 
-    def cols(self):
+    def cols(self) -> int:
         return self.number_of_cols
 
-    def get_winner(self):
+    def get_winner(self) -> str | None:
         return self.winner
 
     def get_coin_at(self, row: int, col: int):
@@ -40,7 +45,7 @@ class Game:
         self.grid = self.__new_empty_grid()
         self.inserted_coins = 0
 
-    def get_current_player(self):
+    def get_current_player(self) -> str:
         return self.players[self.current_player]
 
     def play(self, column: int):
@@ -53,6 +58,7 @@ class Game:
         free_row = self.__get_free_row(column)
         coin = self.get_current_player()
         self.grid[free_row][column] = coin
+        self.last_inserted = (free_row, column)
         self.inserted_coins += 1
         self.winner = self.check()
         self.current_player = self.__next_player()
@@ -60,7 +66,7 @@ class Game:
     def __next_player(self) -> int:
         return (self.current_player + 1) % len(self.players)
 
-    def __new_empty_grid(self):
+    def __new_empty_grid(self) -> list[list[None | str]]:
         return [[None for _ in range(self.cols())] for _ in range(self.rows())]
 
     def __is_column_valid(self, column: int) -> bool:
@@ -81,7 +87,7 @@ class Game:
     def __is_full(self):
         return self.inserted_coins == self.rows() * self.cols()
 
-    def check(self):
+    def check(self) -> str | None:
         for r in range(self.rows()):
             w = self.__connect_four_in_row(r)
             if w is not None:
@@ -108,7 +114,7 @@ class Game:
                 return w
         return None
 
-    def __connect_four_in_row(self, row):
+    def __connect_four_in_row(self, row: int) -> str | None:
         current = self.get_coin_at(row, 0)
         count = 1
         col = 1
@@ -124,7 +130,7 @@ class Game:
             return current
         return None
 
-    def __connect_four_in_col(self, col):
+    def __connect_four_in_col(self, col: int) -> str | None:
         current = self.get_coin_at(0, col)
         count = 1
         row = 1
@@ -140,7 +146,7 @@ class Game:
             return current
         return None
 
-    def __connect_four_in_diagonal_bottom_left_to_top_right(self, row, col):
+    def __connect_four_in_diagonal_bottom_left_to_top_right(self, row: int, col: int) -> str | None:
         current = self.get_coin_at(row, col)
         count = 1
         i = 1
@@ -156,7 +162,7 @@ class Game:
             return current
         return None
 
-    def __connect_four_in_diagonal_top_left_to_bottom_right(self, row, col):
+    def __connect_four_in_diagonal_top_left_to_bottom_right(self, row: int, col: int) -> str | None:
         current = self.get_coin_at(row, col)
         count = 1
         i = 1
@@ -172,10 +178,13 @@ class Game:
             return current
         return None
 
+    def get_coordinate_of_last_inserted(self):
+        return self.last_inserted
+
 
 class ObservableGame(Game):
-    def __init__(self, first, second, rows: int = DEFAULT_ROWS, cols: int = DEFAULT_COLS, count_to_win: int = DEFAULT_COUNT_TO_WIN):
-        super().__init__(first, second, rows, cols, count_to_win)
+    def __init__(self, players: list[str], rows: int = DEFAULT_NB_ROWS, cols: int = DEFAULT_NB_COLS, count_to_win: int = DEFAULT_COUNT_TO_WIN):
+        super().__init__(players, rows, cols, count_to_win)
         self.observers = []
 
     def add_observers(self, observer):

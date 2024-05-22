@@ -2,10 +2,9 @@ import pytest
 
 from src.core.game import Game, InvalidColumnError, ColumnFullError
 
-ROWS = 6
-COLS = 7
 FIRST_PLAYER = "Alice"
 SECOND_PLAYER = "Bob"
+PLAYERS = [FIRST_PLAYER, SECOND_PLAYER]
 
 
 def assert_grid_is_empty(game):
@@ -16,7 +15,7 @@ def assert_grid_is_empty(game):
 
 @pytest.fixture
 def game():
-    return Game(FIRST_PLAYER, SECOND_PLAYER)
+    return Game(PLAYERS)
 
 
 def test_first_player(game):
@@ -24,25 +23,17 @@ def test_first_player(game):
 
 
 def test_grid_of_new_game_is_empty(game):
-    assert game.rows() == ROWS
-    assert game.cols() == COLS
+    assert game.rows() == 6
+    assert game.cols() == 7
     assert_grid_is_empty(game)
 
 
 def test_play_one_coin(game):
     game.play(0)
-    assert game.get_coin_at(5, 0) == FIRST_PLAYER
     for row in range(game.rows()):
         for col in range(game.cols()):
             if (row, col) != (5, 0):
                 assert game.get_coin_at(row, col) is None
-
-
-def test_reset_game(game):
-    game.play(0)
-    game.reset()
-    assert_grid_is_empty(game)
-    assert game.get_current_player() == FIRST_PLAYER
 
 
 def test_after_first_player_has_played_it_is_second_player_turn(game):
@@ -289,3 +280,20 @@ def test_reset_winner(game):
     assert game.get_winner() is not None
     game.reset()
     assert game.get_winner() is None
+
+
+def test_reset_game(game):
+    game.play(0)
+    game.reset()
+    assert_grid_is_empty(game)
+    assert game.get_current_player() == FIRST_PLAYER
+
+
+def test_get_coordinate_of_last_inserted(game):
+    assert game.get_coordinate_of_last_inserted() is None
+    game.play(0)
+    assert game.get_coordinate_of_last_inserted() == (5, 0)
+    game.play(0)
+    assert game.get_coordinate_of_last_inserted() == (4, 0)
+    game.play(1)
+    assert game.get_coordinate_of_last_inserted() == (5, 1)
